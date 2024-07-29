@@ -1,0 +1,478 @@
+<html><head><base href="https://ai-tools-app.example.com/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Tools Hub</title>
+<style>
+  :root {
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --card-bg: #f0f0f0;
+    --card-border: #e0e0e0;
+    --accent-color: #6200ee;
+    --secondary-color: #03dac6;
+  }
+
+  .dark-mode {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --card-bg: #1e1e1e;
+    --card-border: #2c2c2c;
+    --accent-color: #bb86fc;
+    --secondary-color: #03dac6;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    transition: background-color 0.3s, color 0.3s;
+  }
+
+  h1, h2 {
+    color: var(--accent-color);
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .search-filter {
+    display: flex;
+    gap: 15px;
+    flex-grow: 1;
+  }
+
+  input, select, button {
+    padding: 12px 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    transition: all 0.3s;
+  }
+
+  input:focus, select:focus {
+    outline: 2px solid var(--accent-color);
+  }
+
+  button {
+    background-color: var(--accent-color);
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+  }
+
+  button:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+  }
+
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+  }
+
+  .category {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  .category:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .category-description {
+    font-size: 14px;
+    color: var(--text-color);
+    opacity: 0.8;
+    margin-bottom: 20px;
+  }
+
+  .tool-list {
+    list-style-type: none;
+    padding-left: 0;
+  }
+
+  .tool-item {
+    background-color: var(--bg-color);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    transition: transform 0.2s;
+    cursor: pointer;
+  }
+
+  .tool-item:hover {
+    transform: translateX(5px);
+  }
+
+  .dark-mode-toggle {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px;
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+  }
+
+  .modal-content {
+    background-color: var(--bg-color);
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    width: 80%;
+    max-width: 500px;
+  }
+
+  .close {
+    color: var(--text-color);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .close:hover,
+  .close:focus {
+    color: var(--accent-color);
+    text-decoration: none;
+  }
+
+  #new-tool-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  #tool-details {
+    display: none;
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    padding: 25px;
+    margin-top: 30px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  #tool-details h2 {
+    margin-top: 0;
+  }
+
+  #tool-details p {
+    margin-bottom: 20px;
+  }
+
+  #tool-details a {
+    display: inline-block;
+    background-color: var(--accent-color);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+  }
+
+  #tool-details a:hover {
+    background-color: var(--secondary-color);
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>AI Tools Hub</h1>
+    <p>Discover and manage cutting-edge AI tools for various tasks.</p>
+  </div>
+
+  <div class="controls">
+    <div class="search-filter">
+      <input type="text" id="search-input" placeholder="Search tools..." onkeyup="filterTools()">
+      <select id="category-filter" onchange="filterTools()">
+        <option value="">All Categories</option>
+      </select>
+    </div>
+    <button onclick="showAddToolModal()">Add New Tool</button>
+    <button class="dark-mode-toggle" onclick="toggleDarkMode()">🌓</button>
+  </div>
+
+  <div id="categories" class="categories-grid"></div>
+
+  <div id="add-tool-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeAddToolModal()">&times;</span>
+      <h2>Add New Tool</h2>
+      <form id="new-tool-form" onsubmit="addNewTool(event)">
+        <input type="text" id="tool-name" placeholder="Tool Name" required>
+        <select id="tool-category" required>
+          <option value="">Select Category</option>
+        </select>
+        <input type="url" id="tool-url" placeholder="Tool URL" required>
+        <textarea id="tool-description" placeholder="Tool Description" required></textarea>
+        <button type="submit">Add Tool</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="tool-details"></div>
+
+  <script>
+    const categories = [
+      {
+        name: "AI Image Generator",
+        description: "Create stunning images from text descriptions",
+        tools: [
+          {
+            name: "DALL-E 2",
+            url: "https://openai.com/dall-e-2/",
+            description: "DALL-E 2 is an AI system that can create realistic images and art from a description in natural language. It can combine concepts, attributes, and styles to generate unique images."
+          },
+          {
+            name: "Midjourney",
+            url: "https://www.midjourney.com/",
+            description: "Midjourney is an AI-powered tool that generates images from textual descriptions. It's known for its artistic style and ability to create unique, creative visuals."
+          },
+          {
+            name: "Stable Diffusion",
+            url: "https://stability.ai/",
+            description: "Stable Diffusion is an open-source text-to-image model capable of generating detailed images conditioned on text descriptions. It can also be used to edit existing images."
+          },
+          {
+            name: "Artbreeder",
+            url: "https://www.artbreeder.com/",
+            description: "Artbreeder uses machine learning to create and blend images. It allows users to create unique artwork by combining and evolving existing images."
+          },
+          {
+            name: "NightCafe",
+            url: "https://nightcafe.studio/",
+            description: "NightCafe is an AI art generator that uses various algorithms to create images from text prompts. It offers multiple styles and can generate both 2D and 3D artwork."
+          }
+        ]
+      },
+      {
+        name: "AI Voice Generator",
+        description: "Convert text to lifelike speech in various languages and accents",
+        tools: [
+          {
+            name: "Google Text-to-Speech",
+            url: "https://cloud.google.com/text-to-speech",
+            description: "Google's Text-to-Speech API converts text into natural-sounding speech in a variety of languages and voices. It uses DeepMind's WaveNet technology for highly realistic voice synthesis."
+          },
+          {
+            name: "Amazon Polly",
+            url: "https://aws.amazon.com/polly/",
+            description: "Amazon Polly is a cloud service that converts text into lifelike speech. It offers a wide selection of languages and voices, and supports SSML for fine-tuned speech control."
+          },
+          {
+            name: "IBM Watson Text to Speech",
+            url: "https://www.ibm.com/cloud/watson-text-to-speech",
+            description: "IBM Watson Text to Speech converts written text into natural-sounding audio in a variety of languages and voices. It uses neural voice technology for high-quality speech synthesis."
+          },
+          {
+            name: "Replica",
+            url: "https://replicastudios.com/",
+            description: "Replica is an AI voice generator that creates human-like voices for various applications. It offers voice cloning capabilities and a wide range of pre-made voices."
+          },
+          {
+            name: "Murf AI",
+            url: "https://murf.ai/",
+            description: "Murf AI is a text-to-speech platform that offers studio-quality voice overs. It provides a range of AI voices and allows users to customize pronunciation and emphasis."
+          }
+        ]
+      },
+      {
+        name: "AI Text to Video",
+        description: "Transform written content into engaging video presentations",
+        tools: [
+          {
+            name: "Synthesia",
+            url: "https://www.synthesia.io/",
+            description: "Synthesia is an AI video generation platform that creates videos from text. It offers AI avatars and voices, making it easy to produce professional-looking videos without traditional video production."
+          },
+          {
+            name: "Lumen5",
+            url: "https://lumen5.com/",
+            description: "Lumen5 is a video creation platform that turns blog posts, articles, and other text content into engaging videos. It uses AI to suggest relevant visuals and create a storyboard."
+          },
+          {
+            name: "Animaker",
+            url: "https://www.animaker.com/",
+            description: "Animaker is a DIY video making tool that includes AI-powered features. It offers a drag-and-drop interface and a vast library of assets to create animated videos from text input."
+          },
+          {
+            name: "Raw Shorts",
+            url: "https://www.rawshorts.com/",
+            description: "Raw Shorts is an AI-powered video maker that converts text into animated explainer videos. It uses machine learning to analyze your script and suggest relevant visuals and animations."
+          },
+          {
+            name: "InVideo",
+            url: "https://invideo.io/",
+            description: "InVideo is an online video creator that uses AI to help turn your ideas into videos. It offers templates and an intuitive editor to create professional videos from text content."
+          }
+        ]
+      }
+    ];
+
+    function renderCategories() {
+      const categoriesDiv = document.getElementById("categories");
+      categoriesDiv.innerHTML = "";
+
+      categories.forEach(category => {
+        const categoryDiv = document.createElement("div");
+        categoryDiv.className = "category";
+        categoryDiv.innerHTML = `
+          <h2>${category.name}</h2>
+          <p class="category-description">${category.description}</p>
+          <ul class="tool-list">
+            ${category.tools.map(tool => `<li class="tool-item" onclick="showToolDetails('${category.name}', '${tool.name}')">${tool.name}</li>`).join("")}
+          </ul>
+        `;
+        categoriesDiv.appendChild(categoryDiv);
+      });
+
+      updateCategoryFilter();
+    }
+
+    function updateCategoryFilter() {
+      const categoryFilter = document.getElementById("category-filter");
+      categoryFilter.innerHTML = '<option value="">All Categories</option>';
+      categories.forEach(category => {
+        const option = document.createElement("option");
+        option.value = category.name;
+        option.textContent = category.name;
+        categoryFilter.appendChild(option);
+      });
+    }
+
+    function showAddToolModal() {
+      const modal = document.getElementById("add-tool-modal");
+      modal.style.display = "block";
+      updateToolCategorySelect();
+    }
+
+    function closeAddToolModal() {
+      const modal = document.getElementById("add-tool-modal");
+      modal.style.display = "none";
+    }
+
+    function updateToolCategorySelect() {
+      const categorySelect = document.getElementById("tool-category");
+      categorySelect.innerHTML = '<option value="">Select Category</option>';
+      categories.forEach(category => {
+        const option = document.createElement("option");
+        option.value = category.name;
+        option.textContent = category.name;
+        categorySelect.appendChild(option);
+      });
+    }
+
+    function addNewTool(event) {
+      event.preventDefault();
+      const name = document.getElementById("tool-name").value;
+      const category = document.getElementById("tool-category").value;
+      const url = document.getElementById("tool-url").value;
+      const description = document.getElementById("tool-description").value;
+
+      const categoryIndex = categories.findIndex(cat => cat.name === category);
+      if (categoryIndex !== -1) {
+        categories[categoryIndex].tools.push({ name, url, description });
+        renderCategories();
+        closeAddToolModal();
+        document.getElementById("new-tool-form").reset();
+      } else {
+        alert("Please select a valid category");
+      }
+    }
+
+    function filterTools() {
+      const searchTerm = document.getElementById("search-input").value.toLowerCase();
+      const categoryFilter = document.getElementById("category-filter").value;
+
+      const categoriesDiv = document.getElementById("categories");
+      categoriesDiv.innerHTML = "";
+
+      categories.forEach(category => {
+        if (!categoryFilter || category.name === categoryFilter) {
+          const filteredTools = category.tools.filter(tool => 
+            tool.name.toLowerCase().includes(searchTerm)
+          );
+
+          if (filteredTools.length > 0) {
+            const categoryDiv = document.createElement("div");
+            categoryDiv.className = "category";
+            categoryDiv.innerHTML = `
+              <h2>${category.name}</h2>
+              <p class="category-description">${category.description}</p>
+              <ul class="tool-list">
+                ${filteredTools.map(tool => `<li class="tool-item" onclick="showToolDetails('${category.name}', '${tool.name}')">${tool.name}</li>`).join("")}
+              </ul>
+            `;
+            categoriesDiv.appendChild(categoryDiv);
+          }
+        }
+      });
+    }
+
+    function showToolDetails(categoryName, toolName) {
+      const category = categories.find(cat => cat.name === categoryName);
+      const tool = category.tools.find(t => t.name === toolName);
+
+      const toolDetailsDiv = document.getElementById("tool-details");
+      toolDetailsDiv.style.display = "block";
+      toolDetailsDiv.innerHTML = `
+        <h2>${tool.name}</h2>
+        <p><strong>Category:</strong> ${categoryName}</p>
+        <p>${tool.description}</p>
+        <a href="${tool.url}" target="_blank">Visit Tool Website</a>
+      `;
+
+      toolDetailsDiv.scrollIntoView({ behavior: "smooth" });
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+
+    renderCategories();
+
+    // Close modal when clicking outside of it
+    window.onclick = function(event) {
+      const modal = document.getElementById("add-tool-modal");
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+  </script>
+</body>
+</html>
